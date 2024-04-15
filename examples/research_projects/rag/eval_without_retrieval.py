@@ -13,10 +13,8 @@ from tqdm import tqdm
 from transformers import BartForConditionalGeneration, RagRetriever, RagSequenceForGeneration, RagTokenForGeneration
 from transformers import logging as transformers_logging
 
-
 sys.path.append(os.path.join(os.getcwd()))  # noqa: E402 # isort:skip
 from utils_rag import exact_match_score, f1_score  # noqa: E402 # isort:skip
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -281,41 +279,9 @@ def main(args):
     evaluate_batch_fn = evaluate_batch_e2e if args.eval_mode == "e2e" else evaluate_batch_retrieval
 
     for checkpoint in checkpoints:
-        if os.path.exists(args.predictions_path) and (not args.recalculate):
-            logger.info("Calculating metrics based on an existing predictions file: {}".format(args.predictions_path))
-            print(args.gold_data_path)
-            score_fn(args, args.predictions_path, args.gold_data_path)
-            continue
-
-        logger.info("***** Running evaluation for {} *****".format(checkpoint))
-        logger.info("  Batch size = %d", args.eval_batch_size)
-        logger.info("  Predictions will be stored under {}".format(args.predictions_path))
-
-        if args.model_type.startswith("rag"):
-            print('checkpoint', checkpoint)
-            print('model_kwargs', model_kwargs)
-            retriever = RagRetriever.from_pretrained(checkpoint, **model_kwargs)
-            model = model_class.from_pretrained(checkpoint, retriever=retriever, **model_kwargs)
-            model.retriever.init_retrieval()
-        else:
-            model = model_class.from_pretrained(checkpoint, **model_kwargs)
-        model.to(args.device)
-
-        with open(args.evaluation_set, "r") as eval_file, open(args.predictions_path, "w") as preds_file:
-            questions = []
-            for line in tqdm(eval_file):
-                questions.append(line.strip())
-                if len(questions) == args.eval_batch_size:
-                    answers = evaluate_batch_fn(args, model, questions)
-                    preds_file.write("\n".join(answers) + "\n")
-                    preds_file.flush()
-                    questions = []
-            if len(questions) > 0:
-                answers = evaluate_batch_fn(args, model, questions)
-                preds_file.write("\n".join(answers))
-                preds_file.flush()
-
-            score_fn(args, args.predictions_path, args.gold_data_path)
+        print(args.predictions_path)
+        print(args.gold_data_path)
+        score_fn(args, args.predictions_path, args.gold_data_path)
 
 
 if __name__ == "__main__":

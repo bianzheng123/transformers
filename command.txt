@@ -1,0 +1,70 @@
+retrieval phase:
+
+python3 examples/research_projects/rag/parse_dpr_relevance_data.py \
+        --src_path examples/research_projects/rag/data/biencoder-nq-dev.json \
+        --evaluation_set examples/research_projects/rag/output/biencoder-nq-dev.questions \
+        --gold_data_path examples/research_projects/rag/output/biencoder-nq-dev.pages
+
+proxychains python3 examples/research_projects/rag/eval_rag.py \
+        --model_name_or_path facebook/rag-token-nq \
+        --model_type rag_token \
+        --index_name compressed \
+        --evaluation_set data/output/biencoder-nq-dev.questions \
+        --gold_data_path data/output/biencoder-nq-dev.pages \
+        --predictions_path data/output/retrieval_preds.tsv  \
+        --eval_mode retrieval \
+        --k 1
+
+end2end phase:
+
+python3 examples/research_projects/rag/parse_dpr_relevance_data_end2end.py \
+        --src_path data/biencoder-nq-dev.json \
+        --gold_data_path data/biencoder-nq-dev-end2end.pages
+
+proxychains python3 examples/research_projects/rag/eval_rag.py \
+        --model_name_or_path facebook/rag-token-nq \
+        --model_type rag_token \
+        --index_name compressed \
+        --evaluation_set data/output/biencoder-nq-dev.questions \
+        --gold_data_path data/output/biencoder-nq-dev.pages \
+        --predictions_path data/output/retrieval_preds.tsv  \
+        --eval_mode e2e \
+        --gold_data_mode ans \
+        --n_docs 5 \
+        --print_predictions \
+        --recalculate
+
+
+proxychains python3 examples/research_projects/rag/eval_without_retrieval.py \
+        --model_name_or_path facebook/rag-token-nq \
+        --model_type rag_token \
+        --index_name compressed \
+        --evaluation_set data/output/biencoder-nq-dev.questions \
+        --gold_data_path data/biencoder-nq-dev-end2end.pages \
+        --predictions_path data/output/retrieval_preds.tsv  \
+        --eval_mode e2e \
+        --gold_data_mode qa \
+        --n_docs 5 \
+        --print_predictions \
+        --recalculate
+
+
+end2end wikipedia:
+
+python3 examples/research_projects/rag/parse_wikipedia_end2end.py \
+        --src_path /home/bianzheng/Dataset/vector-set-similarity-search/RawData/wikipedia/nq_dev.json \
+        --evaluation_set data/wikipedia/output/nq-dev.questions \
+        --gold_data_path data/wikipedia/output/nq-dev.pages
+
+proxychains python3 examples/research_projects/rag/eval_rag.py \
+        --model_name_or_path facebook/rag-token-nq \
+        --model_type rag_token \
+        --index_name compressed \
+        --evaluation_set data/wikipedia/output/nq-dev.questions \
+        --gold_data_path data/wikipedia/output/nq-dev.pages \
+        --predictions_path data/wikipedia/output/retrieval_preds.tsv  \
+        --eval_mode e2e \
+        --gold_data_mode qa \
+        --n_docs 10 \
+        --print_predictions \
+        --recalculate
